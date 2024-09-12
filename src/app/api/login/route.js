@@ -2,7 +2,6 @@
 
 import { NextResponse } from "next/server";
 import { signIn } from "@/auth";
-
 import { AuthError } from "next-auth";
 
 export async function POST(request) {
@@ -19,9 +18,15 @@ export async function POST(request) {
             { status: 401 }
           );
         default:
-          return "Something went wrong.";
+          return NextResponse.json(
+            { message: `Auth error: ${error}` },
+            { status: 401 }
+          );
       }
     }
-    throw error;
+    return NextResponse.json(
+      { message: "Something went wrong." },
+      { status: 500 }
+    );
   }
 }

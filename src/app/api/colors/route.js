@@ -1,22 +1,7 @@
-import { auth } from "@/auth";
+import { authMiddleware } from "@/auth-middleware";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-
-export async function authMiddleware() {
-  try {
-    const authRes = await auth();
-
-    // return true;
-    if (authRes?.user?.name) {
-      return authRes?.user?.name; // Return the user's ID
-    }
-    // return null; // User not authenticated
-  } catch (error) {
-    console.error("Error retrieving user:", error);
-    return null;
-  }
-}
 
 export async function GET() {
   try {
