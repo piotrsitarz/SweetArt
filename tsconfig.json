@@ -19,8 +19,18 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "target": "ES2017"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/auth.config.js",
+    "middleware.js",
+    "middleware.js",
+    "src/app/ui/dashboard/color-manager/color-manager.jsx"
+  ],
   "exclude": ["node_modules"]
 }
