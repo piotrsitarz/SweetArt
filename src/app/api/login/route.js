@@ -8,7 +8,12 @@ export async function POST(request) {
   const { name, password } = await request.json();
 
   try {
-    await signIn("credentials", { name, password });
+    await signIn("credentials", { name, password, redirect: false });
+
+    return NextResponse.json(
+      { message: "Sign-in successful!" },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -25,7 +30,7 @@ export async function POST(request) {
       }
     }
     return NextResponse.json(
-      { message: "Something went wrong." },
+      { message: `Something went wrong. ${error}` },
       { status: 500 }
     );
   }
