@@ -30,7 +30,9 @@
     "src/auth.config.js",
     "middleware.js",
     "middleware.js",
-    "src/app/ui/dashboard/color-manager/color-manager.jsx"
+    "src/app/ui/dashboard/color-manager/color-manager.jsx",
+    "src/app/dashboard/image-processing/page.jsx",
+    "src/app/ui/dashboard/image-processing/color-legend.jsx"
   ],
   "exclude": ["node_modules"]
 }

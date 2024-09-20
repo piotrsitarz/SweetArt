@@ -12,7 +12,6 @@ export async function GET() {
       });
     }
     const colors = await prisma.color.findMany({ where: { userName } });
-    console.log("colors", colors);
     return new Response(JSON.stringify(colors), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

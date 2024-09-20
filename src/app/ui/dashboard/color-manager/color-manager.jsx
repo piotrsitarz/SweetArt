@@ -1,132 +1,18 @@
-"use client";
-
-import { useState, useEffect } from "react";
-
-export default function ColorManager() {
-  const [colors, setColors] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState("");
-  const [value, setValue] = useState("#000000");
-  const [editingColor, setEditingColor] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchColors() {
-      try {
-        setIsLoading(true);
-        const res = await fetch("/api/colors");
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        setColors(data || []);
-      } catch (error) {
-        console.error("Error fetching colors:", error);
-        setError("Failed to load colors. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchColors();
-  }, []);
-
-  const handleCreateColor = async (e) => {
-    e.preventDefault();
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/colors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, value }), // No need to include userId here
-      });
-
-      if (res.ok) {
-        const newColor = await res.json();
-        setColors((prev) => [...prev, newColor]);
-        setName("");
-        setValue("#000000");
-      } else {
-        const errorData = await res.json();
-        setError(errorData.error || "Something went wrong");
-      }
-    } catch (error) {
-      setError("An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateColor = async (e) => {
-    e.preventDefault();
-    if (!editingColor) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/colors", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: editingColor.id, name, value }),
-      });
-      if (res.ok) {
-        const updatedColor = await res.json();
-        setColors((prev) =>
-          prev.map((color) =>
-            color.id === updatedColor.id ? updatedColor : color
-          )
-        );
-        setName("");
-        setValue("#000000");
-        setEditingColor(null);
-      } else {
-        const errorData = await res.json();
-        setError(errorData.error || "Something went wrong");
-      }
-    } catch (error) {
-      setError("An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteColor = async (id) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/colors", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
-      });
-      if (res.ok) {
-        setColors((prev) => prev.filter((color) => color.id !== id));
-      } else {
-        const errorData = await res.json();
-        setError(errorData.error || "Something went wrong");
-      }
-    } catch (error) {
-      setError("An error occurred");
-    } finally {
-      setName("");
-      setValue("#000000");
-      setIsLoading(false);
-      setEditingColor(null);
-    }
-  };
-
-  const handleCancelEditing = () => {
-    setName("");
-    setValue("#000");
-    setEditingColor(null);
-  };
-
+export default function ColorManager({
+  colors,
+  isLoading,
+  setName,
+  name,
+  setValue,
+  value,
+  setEditingColor,
+  editingColor,
+  error,
+  handleCreateColor,
+  handleUpdateColor,
+  handleCancelEditing,
+  handleDeleteColor,
+}) {
   return (
     <div className="p-6 max-w-lg mx-auto bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold mb-4">Color Manager</h2>

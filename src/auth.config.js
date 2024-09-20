@@ -12,7 +12,7 @@ export const authConfig = {
         if (isLoggedIn) return true; // Allow access to the dashboard if logged in
         return false; // Redirect unauthenticated users to the sign-in page
       } else if (isOnSignInPage && isLoggedIn) {
-        // If the user is on the sign-in page and already logged in, redirect to the dashboard
+        // If the user is on the sign-in page and already logged in, redirect to the dashboard/home
         return Response.redirect(new URL("/dashboard/home", nextUrl));
       }
 
