@@ -1,6 +1,9 @@
 import { jsPDF } from "jspdf";
 import "svg2pdf.js";
 
+const headerFontSize = 16;
+const headerHeight = headerFontSize + 10;
+
 const handlePagination = (
   pdfDoc,
   x,
@@ -72,9 +75,6 @@ export const downloadColorLegend = (
   let x = margin;
   let y = margin;
 
-  const headerFontSize = 16;
-  const headerHeight = headerFontSize + 10;
-
   if (singleColor) {
     const color = colors;
     const filteredList = circlesList.filter((circle) => circle.color === color);
@@ -143,7 +143,11 @@ export const downloadColorLegend = (
   );
 };
 
-export const convertSvgToPdf = async (svgElement, safeColorId) => {
+export const convertSvgToPdf = async ({
+  svgElement,
+  safeColorId,
+  colorMap,
+}) => {
   const pdfWidth = 594;
   const pdfHeight = 841;
   const rectWidth = 500;
@@ -172,6 +176,32 @@ export const convertSvgToPdf = async (svgElement, safeColorId) => {
     height: svgHeight,
   });
 
+  if (colorMap) {
+    let x = 20;
+    let y = 20;
+    const circleRadius = 5;
+    const headerFontSize = 12;
+
+    Object.entries(colorMap).forEach(([color, count]) => {
+      pdfDoc
+        .setFillColor(color)
+        .circle(x, y + headerFontSize / 2, circleRadius, "F");
+
+      pdfDoc.setFont("helvetica", "normal");
+      pdfDoc.text(
+        `${color} = ${count}`,
+        x + circleRadius + 10,
+        y + headerFontSize / 2 + 1.5
+      );
+
+      x += 100;
+    });
+  }
+
   pdfDoc.rect(recXOffset, recYOffset, rectWidth, rectHeight);
-  pdfDoc.save(`${safeColorId ? "color" + safeColorId : "all"}.pdf`);
+  pdfDoc.save(
+    `${
+      safeColorId ? "color" + safeColorId : colorMap ? "with-numbers" : "all"
+    }.pdf`
+  );
 };

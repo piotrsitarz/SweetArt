@@ -26,18 +26,25 @@ const ColorGridOverlay = ({
 }) => {
   const canvasRef = useRef(null);
   const svgRef = useRef(null);
+  const svgWithNumbersRef = useRef(null);
   const [circles, setCircles] = useState([]);
+  const [colorMap, setColorMap] = useState([]);
 
   const handleDownloadPdf = (color) => {
     if (color === "all") {
       if (svgRef.current) {
-        convertSvgToPdf(svgRef.current);
+        convertSvgToPdf({ svgElement: svgRef.current });
+      }
+    }
+    if (color === "withNumbers") {
+      if (svgWithNumbersRef.current) {
+        convertSvgToPdf({ svgElement: svgWithNumbersRef.current, colorMap });
       }
     } else {
       const safeColorId = getSafeColorId(color);
       const svgElement = document.querySelector(`#svg-${safeColorId}`);
       if (svgElement) {
-        convertSvgToPdf(svgElement, `-${safeColorId}`);
+        convertSvgToPdf({ svgElement, safeColorId: `-${safeColorId}` });
       }
     }
   };
@@ -62,6 +69,7 @@ const ColorGridOverlay = ({
 
       let newCircles = [];
       let newCirclesList = [];
+      let uniqueColors = new Set();
 
       for (let x = 0; x < 40; x++) {
         const circleYstartPosition =
@@ -110,18 +118,56 @@ const ColorGridOverlay = ({
           const colorKey = `rgb(${closestColor.join(",")})`;
 
           colorCount[colorKey] = (colorCount[colorKey] || 0) + 1;
+          uniqueColors.add(colorKey);
 
-          newCircles.push(
-            <circle
-              key={`x${x + 1}-y${y + 1}`}
-              cx={startX}
-              cy={startY}
-              r={circleRadius}
-              fill={colorKey}
-              data-tooltip-id="circle-tooltip"
-              data-tooltip-content={`X${x + 1}, Y${y + 1} - ${colorKey}`}
-            />
-          );
+          const colorMap = {};
+          Array.from(uniqueColors).forEach((color, index) => {
+            colorMap[color] = index + 1;
+          });
+          const num = colorMap[colorKey];
+          setColorMap(colorMap);
+
+          newCircles.push({
+            circle: (
+              <circle
+                key={`x${x + 1}-y${y + 1}`}
+                cx={startX}
+                cy={startY}
+                r={circleRadius}
+                fill={colorKey}
+                data-tooltip-id="circle-tooltip"
+                data-tooltip-content={`X${x + 1}, Y${y + 1} - ${colorKey}`}
+              />
+            ),
+            withNumbers: (
+              <g key={`circle-withNumbers-x${x + 1}-y${y + 1}`}>
+                <circle
+                  key={`x${x + 1}-y${y + 1}`}
+                  cx={startX}
+                  cy={startY}
+                  r={circleRadius}
+                  stroke="black"
+                  strokeWidth={0.1}
+                  fill="white"
+                  data-tooltip-id="circle-tooltip"
+                  data-tooltip-content={`X${x + 1}, Y${
+                    y + 1
+                  } - ${colorKey} = ${num}`}
+                />
+                <text
+                  x={startX}
+                  y={startY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  alignmentBaseline="central"
+                  fill="black"
+                  fontSize="5px"
+                >
+                  {num}
+                </text>
+              </g>
+            ),
+          });
 
           newCirclesList.push({
             coords: `X${x + 1}Y${y + 1}`,
@@ -151,13 +197,32 @@ const ColorGridOverlay = ({
       </div>
       <div className="flex flex-col items-center w-full max-w-sm h-full">
         <svg
+          ref={svgWithNumbersRef}
+          width={gridWidth}
+          height={gridHeight}
+          className="mx-auto my-8"
+          // style={{ background: "black" }}
+        >
+          {circles.map(({ withNumbers }) => withNumbers)}
+        </svg>
+        <div className="mt-0">
+          <button
+            onClick={() => handleDownloadPdf("withNumbers")}
+            className="block w-full px-4 text-center text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-lg cursor-pointer py-2 font-semibold"
+          >
+            Download PDF
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col items-center w-full max-w-sm h-full">
+        <svg
           ref={svgRef}
           width={gridWidth}
           height={gridHeight}
           className="mx-auto my-8"
           style={{ background: "black" }}
         >
-          {circles}
+          {circles.map(({ circle }) => circle)}
         </svg>
         <div className="mt-0">
           <button
@@ -168,6 +233,7 @@ const ColorGridOverlay = ({
           </button>
         </div>
       </div>
+
       {Object.entries(colorCounts).map(([color]) => (
         <div
           key={color}
@@ -178,9 +244,18 @@ const ColorGridOverlay = ({
             width={gridWidth}
             height={gridHeight}
             className="mx-auto my-8"
-            style={{ background: "black" }}
           >
-            {circles.filter((circle) => circle.props.fill === color)}
+            {circles
+              .filter(({ circle }) => circle.props.fill === color)
+              .map(({ circle: { props } }, index) => (
+                <circle
+                  key={index}
+                  {...props}
+                  fill="white"
+                  stroke="black"
+                  strokeWidth={0.1}
+                />
+              ))}
           </svg>
           <div className="mt-0">
             <button
@@ -200,7 +275,7 @@ const ColorGridOverlay = ({
                 <span className="text-sm font-medium">
                   {color}
                   <span className="font-bold">{`: ${
-                    circles.filter((circle) => circle.props.fill === color)
+                    circles.filter(({ circle }) => circle.props.fill === color)
                       .length
                   }`}</span>
                 </span>
